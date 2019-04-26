@@ -1,6 +1,6 @@
 # Zombie Reloaded Leader Plugin
 
-The full credit goes to original author antiteal (and will leave sm forum post/link down). He didn't had repo to fork it!
+The full credit goes to original author [**antiteal**](https://forums.alliedmods.net/member.php?u=263656) (and will leave sm forum post/link down). He didn't had repo to fork it!
 
 
 
