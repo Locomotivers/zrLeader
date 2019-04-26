@@ -13,23 +13,23 @@ Allows for an admin to select or for regular players to vote for a human to be t
 This plugin requires Zombie:Reloaded.
 
 #### Server ConVars
-sm_leader_version - Leader Version (2.9)
-sm_leader_allow_votes - Determines whether players can vote for leaders. (Default: "1")
-sm_leader_defend_vmt - The defend here .vmt file (Default: "materials/sg/sgdefend.vmt")
-sm_leader_defend_vtf - The defend here .vtf file (Default: "materials/sg/sgdefend.vtf")
-sm_leader_follow_vmt - The follow me .vmt file (Default: "materials/sg/sgfollow.vtf")
-sm_leader_follow_vtf - The follow me .vtf file (Default: "materials/sg/sgfollow.vtf")
+* sm_leader_version - Leader Version (2.9)
+* sm_leader_allow_votes - Determines whether players can vote for leaders. (Default: "1")
+* sm_leader_defend_vmt - The defend here .vmt file (Default: "materials/sg/sgdefend.vmt")
+* sm_leader_defend_vtf - The defend here .vtf file (Default: "materials/sg/sgdefend.vtf")
+* sm_leader_follow_vmt - The follow me .vmt file (Default: "materials/sg/sgfollow.vtf")
+* sm_leader_follow_vtf - The follow me .vtf file (Default: "materials/sg/sgfollow.vtf")
 
 #### Commands
-sm_leader - Access the leader menu OR Set a player to be leader (ADMFLAG_GENERIC)
-sm_currentleader - Shows the current leader.
-sm_voteleader <player> - Votes for the specified player to be leader. Required votes is current player count / 10.
-sm_removeleader (ADMFLAG_GENERIC) - Removes the current leader.
+* sm_leader - Access the leader menu OR Set a player to be leader (ADMFLAG_GENERIC)
+* sm_currentleader - Shows the current leader.
+* sm_voteleader <player> - Votes for the specified player to be leader. Required votes is current player count / 10.
+* sm_removeleader (ADMFLAG_GENERIC) - Removes the current leader.
 
 #### Planned Features
-Config
-More extensive API
-More rainbow stuff
+* Config
+* More extensive API
+* More rainbow stuff
 
 #### API
 ```sourcepawn
