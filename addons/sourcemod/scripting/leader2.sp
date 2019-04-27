@@ -940,12 +940,21 @@ public Action DangerMarker(int cilent, int args)
 {
 	if(IsVaildLeader(client))
 	{
-		
+		float radius, posEye[3], posEyeAngle[3] posAim[3];
+		GetClientEyeAngles(cilent, posEye[3]);
+		TR_TraceRayFilter(posEye, posEyeAngle, MASK_SOLID, RayType_infinite, TraceRay_DontReflectionSelf, cilent);
+		if(TR_DidHit())
+		{
+			TR_GetEndPosition(posAim);
+			
+		}
 	}
 	else
 		PrintToChat(cilent,"[SM] You are not currently leader");
 	return Plugin_Handled;
 }
+
+public bool TraceRay_DontReflectionSelf(int target, mask, int cilent){ return (target != client)}
 
 bool IsVaildLeader(int cilent)
 {
