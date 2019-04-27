@@ -882,8 +882,74 @@ public Action VoteLeader(int client, int argc)
 	{
 		SetLeader(target);
 		PrintToChatAll("[SM] %N has been voted to be the new leader!", target);
-		LeaderMenu(target);
+		PrintToChat(target, "[SM] You may use the leader functions now with command or menu (!leader).")
+		//LeaderMenu(target);
 	}
 
 	return Plugin_Handled;
+}
+
+public Action Resign(int cilent, int args)
+{
+	if(IsVaildLeader(client))
+	{
+		RemoveLeader(cilent);
+		PrintToChatAll("[SM] The leader has resigned!");
+	}
+	else
+		PrintToChat(cilent,"[SM] You are not currently leader");
+	return Plugin_Handled;
+}
+public Action DefendorFollow(int client, int args)
+{
+	char type[10];
+	GetCmdArg(1, type, sizeof(type));
+
+	if (args == 1)
+	{
+		if(IsVaildLeader(client))
+		{
+			if(!markerActive)
+			{
+				RemoveMarker(client);
+				spriteEntities[client] = AttachSprite(client, DefendVMT);
+				markerEntities[client] = SpawnMarker(client, DefendVMT);
+				PrintToChat(client, "[SM] 'Defend Here' marker placed.");
+				markerActive = true;
+			}
+			else
+			{
+				RemoveMarker(client);
+				RemoveSprite(client);
+				PrintToChat(client, "[SM] Marker removed.");
+				markerActive = false;
+			}
+		}
+		else
+		PrintToChat(cilent,"[SM] You are not currently leader");
+	
+	}
+	else
+		PrintToChat(cilent,"[SM] Please enter which type you want to disable (i.e !)");
+
+	
+	return Plugin_Handled;
+}
+
+public Action DangerMarker(int cilent, int args)
+{
+	if(IsVaildLeader(client))
+	{
+		
+	}
+	else
+		PrintToChat(cilent,"[SM] You are not currently leader");
+	return Plugin_Handled;
+}
+
+bool IsVaildLeader(int cilent)
+{
+	if(IsValidClient(cilent) && (cilent == leaderCilent))
+		return true;
+	return false;
 }
