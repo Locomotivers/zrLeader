@@ -30,15 +30,17 @@ char FollowVMT[PLATFORM_MAX_PATH];
 char FollowVTF[PLATFORM_MAX_PATH];
 char SpawnVTF[PLATFORM_MAX_PATH];
 char SpawnVMT[PLATFORM_MAX_PATH];
+
 char leaderTag[64];
 
 int g_BeamSprite = -1;
 int g_HaloSprite = -1;
 int greyColor[4] = {128, 128, 128, 255};
+int redColor[4] = {255, 0, 0, 1};
 int g_BeaconSerial[MAXPLAYERS+1] = { 0, ... };
 int g_Serial_Gen = 0;
 
-float radSpawnPoint = 0.00;
+float spawnMarkRadius = 375.00;
 
 public Plugin myinfo = {
 	name = "Leader",
@@ -63,14 +65,22 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_voteleader", VoteLeader);
 	RegAdminCmd("sm_removeleader", RemoveTheLeader, ADMFLAG_GENERIC);
 	RegConsoleCmd("sm_resignleader", ResignLeader);
-	RegConsoleCmd("sm_spawnpoint", SpawnPointMarker);
+	RegConsoleCmd("sm_marker", MarkerToggle); // Disables all marker and sprite
+	RegConsoleCmd("+defend", MarkerToggle);
+	RegConsoleCmd("-defend", MarkerToggle);
+	RegConsoleCmd("+follow", MarkerToggle);
+	RegConsoleCmd("-follow", MarkerToggle);
+	RegConsoleCmd("+spawn", MarkerToggle);
+	RegConsoleCmd("-spawn", MarkerToggle);
+
 
 	g_cVDefendVMT = CreateConVar("sm_leader_defend_vmt", "materials/sg/sgdefend.vmt", "The defend here .vmt file");
 	g_cVDefendVTF = CreateConVar("sm_leader_defend_vtf", "materials/sg/sgdefend.vtf", "The defend here .vtf file");
 	g_cVFollowVMT = CreateConVar("sm_leader_follow_vmt", "materials/sg/sgfollow.vmt", "The follow me .vmt file");
 	g_cVFollowVTF = CreateConVar("sm_leader_follow_vtf", "materials/sg/sgfollow.vtf", "The follow me .vtf file");
-	g_cVSpawnVMT = = CreateConVar("sm_leader_spawn_vmt", "materials/gfl/gflspawn.vmt", "The spawn point indicator .vmt file");
-	g_cVSpawnVTF = = CreateConVar("sm_leader_spawn_vtf", "materials/gfl/gflspawn.vtf", "The spawn point indicator .vtf file");
+	g_cVSpawnVMT = CreateConVar("sm_leader_spawn_vmt", "materials/gfl/gflspawn.vmt", "The spawn point indicator .vmt file");
+	g_cVSpawnVTF = CreateConVar("sm_leader_spawn_vtf", "materials/gfl/gflspawn.vtf", "The spawn point indicator .vtf file");
+	
 	g_cVAllowVoting = CreateConVar("sm_leader_allow_votes", "1", "Determines whether players can vote for leaders.");
 	g_cVSpawnPointRad = CreateConVar("sm_leader_spawn_rad", "375.00", "Determines radius of warning ring.");
 
@@ -97,17 +107,17 @@ public void OnPluginStart()
 	AddFileToDownloadsTable(FollowVTF);
 	AddFileToDownloadsTable(FollowVMT);
 	AddFileToDownloadsTable(SpawnVTF);
-	AddFileToDownloadsTable(SpawnVMF);
+	AddFileToDownloadsTable(SpawnVMT);
 
 	PrecacheGeneric(DefendVTF, true);
 	PrecacheGeneric(DefendVMT, true);
 	PrecacheGeneric(FollowVTF, true);
 	PrecacheGeneric(FollowVMT, true);
 	PrecacheGeneric(SpawnVTF, true);
-	PrecacheGeneric(SpawnVMF, true);
+	PrecacheGeneric(SpawnVMT, true);
 
 	allowVoting = g_cVAllowVoting.BoolValue;
-	radSpawnPoint = g_cVSpawnPointRad.FloatValue;
+	spawnMarkRadius = g_cVSpawnPointRad.FloatValue;
 
 	RegPluginLibrary("leader");
 
@@ -151,17 +161,17 @@ public void ConVarChange(ConVar CVar, const char[] oldVal, const char[] newVal)
 	AddFileToDownloadsTable(FollowVTF);
 	AddFileToDownloadsTable(FollowVMT);
 	AddFileToDownloadsTable(SpawnVTF);
-	AddFileToDownloadsTable(SpawnVMF);
+	AddFileToDownloadsTable(SpawnVMT);
 
 	PrecacheGeneric(DefendVTF, true);
 	PrecacheGeneric(DefendVMT, true);
 	PrecacheGeneric(FollowVTF, true);
 	PrecacheGeneric(FollowVMT, true);
 	PrecacheGeneric(SpawnVTF, true);
-	PrecacheGeneric(SpawnVMF, true);
+	PrecacheGeneric(SpawnVMT, true);
 
 	allowVoting = g_cVAllowVoting.BoolValue;
-	radSpawnPoint = g_cVSpawnPointRad.FloatValue;
+	spawnMarkRadius = g_cVSpawnPointRad.FloatValue;
 
 }
 
@@ -172,14 +182,14 @@ public void OnMapStart()
 	AddFileToDownloadsTable(FollowVTF);
 	AddFileToDownloadsTable(FollowVMT);
 	AddFileToDownloadsTable(SpawnVTF);
-	AddFileToDownloadsTable(SpawnVMF);
+	AddFileToDownloadsTable(SpawnVMT);
 
 	PrecacheGeneric(DefendVTF, true);
 	PrecacheGeneric(DefendVMT, true);
 	PrecacheGeneric(FollowVTF, true);
 	PrecacheGeneric(FollowVMT, true);
 	PrecacheGeneric(SpawnVTF, true);
-	PrecacheGeneric(SpawnVMF, true);
+	PrecacheGeneric(SpawnVMT, true);
 
 	Handle gameConfig = LoadGameConfigFile("funcommands.games");
 	if (gameConfig == null)
@@ -272,7 +282,7 @@ public Action Timer_Beacon(Handle timer, any value)
 	return Plugin_Continue;
 }
 
-public int AttachSprite(int client, char[] sprite, bool fAlt = false, float aimVec = NULL_VECTOR) //https://forums.alliedmods.net/showpost.php?p=1880207&postcount=5
+public int AttachSprite(int client, char[] sprite) //https://forums.alliedmods.net/showpost.php?p=1880207&postcount=5
 {
 	if(!IsPlayerAlive(client))
 	{
@@ -299,8 +309,7 @@ public int AttachSprite(int client, char[] sprite, bool fAlt = false, float aimV
 	DispatchKeyValue(Ent, "rendermode", "1");
 	DispatchKeyValue(Ent, "rendercolor", "255 255 255");
 	DispatchSpawn(Ent);
-	if(!fAlt) TeleportEntity(Ent, Origin, NULL_VECTOR, NULL_VECTOR);
-	else TeleportEntity(Ent, aimVec, NULL_VECTOR, NULL_VECTOR);
+	TeleportEntity(Ent, Origin, NULL_VECTOR, NULL_VECTOR);
 	SetVariantString(iTarget);
 	AcceptEntityInput(Ent, "SetParent", Ent, Ent, 0);
 
@@ -378,7 +387,7 @@ public void RemoveLeader(int client)
 	beaconActive = false;
 }
 
-public int SpawnMarker(int client, char[] sprite)
+public int SpawnMarker(int client, char[] sprite, float aimVec[3])
 {
 	if(!IsPlayerAlive(client))
 	{
@@ -399,7 +408,8 @@ public int SpawnMarker(int client, char[] sprite)
 	DispatchKeyValue(Ent, "rendermode", "1");
 	DispatchKeyValue(Ent, "rendercolor", "255 255 255");
 	DispatchSpawn(Ent);
-	TeleportEntity(Ent, Origin, NULL_VECTOR, NULL_VECTOR);
+	if (StrEqual(DefendVMT, sprite))TeleportEntity(Ent, Origin, NULL_VECTOR, NULL_VECTOR);
+	else TeleportEntity(Ent, aimVec, NULL_VECTOR, NULL_VECTOR);
 
 	return Ent;
 }
@@ -713,7 +723,7 @@ public int MarkerMenu_Handler(Handle menu, MenuAction action, int client, int po
 			if(StrEqual(info, "defendmarker"))
 			{
 				RemoveMarker(client);
-				markerEntities[client] = SpawnMarker(client, DefendVMT);
+				markerEntities[client] = SpawnMarker(client, DefendVMT, NULL_VECTOR);
 				PrintToChat(client, "[SM] 'Defend Here' marker placed.");
 				markerActive = true;
 				LeaderMenu(client);
@@ -917,98 +927,95 @@ public Action VoteLeader(int client, int argc)
 	{
 		SetLeader(target);
 		PrintToChatAll("[SM] %N has been voted to be the new leader!", target);
-		PrintToChat(target, "[SM] You may use the leader functions now with command or menu (!leader).")
+		PrintToChat(target, "[SM] You may use the leader functions now with command or menu (!leader).");
 		//LeaderMenu(target);
 	}
 
 	return Plugin_Handled;
 }
 
-public Action ResignLeader(int cilent, int args)
+public Action ResignLeader(int client, int args)
 {
-	if(IsVaildLeader(client))
+	if(client == leaderClient)
 	{
-		RemoveLeader(cilent);
+		RemoveLeader(client);
 		PrintToChatAll("[SM] The leader has resigned!");
 	}
 	else
-		PrintToChat(cilent,"[SM] You are not currently leader");
+		PrintToChat(client,"[SM] You are not currently leader");
 	return Plugin_Handled;
 }
-public Action DefendorFollow(int client, int args)
+public Action MarkerToggle(int client, int args)
 {
-	char type[10];
-	GetCmdArg(1, type, sizeof(type));
+	char cType[32];
+	GetCmdArg(0, cType, sizeof(cType));
 
-	if (args == 1)
+	if(client == leaderClient)
 	{
-		if(IsVaildLeader(client))
+		RemoveSprite(client);
+		RemoveMarker(client);
+		markerActive = false;
+
+		if(StrContains(cType, "+"))
 		{
-			if(!markerActive)
+			if(StrContains(cType, "defend"))
 			{
-				RemoveMarker(client);
 				spriteEntities[client] = AttachSprite(client, DefendVMT);
-				markerEntities[client] = SpawnMarker(client, DefendVMT);
+				markerEntities[client] = SpawnMarker(client, DefendVMT, NULL_VECTOR);
 				PrintToChat(client, "[SM] 'Defend Here' marker placed.");
+				currentSprite = 0;
 				markerActive = true;
 			}
-			else
+			else if(StrContains(cType, "follow"))
 			{
-				RemoveMarker(client);
-				RemoveSprite(client);
-				PrintToChat(client, "[SM] Marker removed.");
-				markerActive = false;
+				spriteEntities[client] = AttachSprite(client, FollowVMT);
+				PrintToChat(client, "[SM] Sprite changed to 'Follow Me'.");
+				currentSprite = 1;
+			}
+			else if (StrContains(cType, "spawn"))
+			{
+				markerActive = SpawnPointMarker(client);
 			}
 		}
 		else
-		PrintToChat(cilent,"[SM] You are not currently leader");
-	
+		{
+			PrintToChat(client, "[SM] All Marker removed.");
+		}
 	}
-	else
-		PrintToChat(cilent,"[SM] Please enter which type you want to disable (i.e !)");
+	else PrintToChat(client,"[SM] You are not currently leader");
 
-	
 	return Plugin_Handled;
 }
 
-public Action SpawnPointMarker(int cilent, int args)
+public bool SpawnPointMarker(int client)
 {
-	if(IsVaildLeader(client))
+	float pEyes[3], pEyeAngle[3], pAim[3];
+	
+	GetClientEyePosition(client, pEyes);
+	GetClientEyeAngles(client, pEyeAngle);
+	
+	Handle trace = TR_TraceRayFilter(pEyes, pEyeAngle, MASK_SOLID, RayType_Infinite, TraceRay_DontHitSelf, client);
+	if(TR_DidHit(trace))
 	{
+		TR_GetEndPosition(pAim, trace);
+		CloseHandle(trace);
 
-		float pEyes[3], pEyeAngle[3], pVec[3];
-		
-		GetClientEyePosition(cilent, pEyes);
-		GetClientEyeAngles(cilent, pEyeAngle);
-		
-		TR_TraceRayFilter(pEyes, pEyeAngle, MASK_SOLID, RayType_Infinite, TraceRay_DontHitSelf, cilent);
-		if(TR_DidHit())
-		{
-			TR_GetEndPosition(pAim);
+		TE_SetupBeamRingPoint(pAim, spawnMarkRadius, spawnMarkRadius + 0.5, g_BeamSprite, g_HaloSprite, 0, 10, 20.0, 5.0, 0.0, redColor, 1, 0);
+		TE_SendToAll();
 
-			TE_SetupBeamRingPoint(pAim, radSpawnPoint, radSpawnPoint+.5, g_BeamSprite, g_HaloSprite, 0, 10, 20.0, 5.0, 0.0, {255, 0, 0}, 1, 0);
-			TE_SendToAll();
+		pAim[2] += 80.0;
+		markerEntities[client] = SpawnMarker(client, SpawnVMT, pAim);
+		PrintToChat(client, "[SM] Spawn indicator placed!");
+		return true;
 
-			pAim[3] += 80.0;
-			AttachSprite(cilent, SpawnPointVMT, true, pAim);
-		}
-		else
-		{
-			PrintToChat(cilent,"[SM] Don't aim yourself and try again!")
-			return Plugin_Handled;
-		}
 	}
 	else
-		PrintToChat(cilent,"[SM] You are not currently leader");
-	return Plugin_Handled;
+	{
+		PrintToChat(client,"[SM] Don't aim yourself and try again!");
+		return false;
+	}
 }
 
-
-public bool TraceRay_DontHitSelf(int target, mask, int cilent) {return (target != cilent);}
-
-bool IsVaildLeader(int cilent)
-{
-	if(IsValidClient(cilent) && (cilent == leaderCilent))
-		return true;
-	return false;
+bool TraceRay_DontHitSelf(int entity, int mask) {
+	return entity > MaxClients;
 }
