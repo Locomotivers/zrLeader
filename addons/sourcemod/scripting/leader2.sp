@@ -985,11 +985,12 @@ public Action SpawnPointMarker(int cilent, int args)
 		if(TR_DidHit())
 		{
 			TR_GetEndPosition(pAim);
-			
-			AttachSprite(cilent, SpawnPointVMT, true, pAim);
 
 			TE_SetupBeamRingPoint(pAim, radSpawnPoint, radSpawnPoint+.5, g_BeamSprite, g_HaloSprite, 0, 10, 20.0, 5.0, 0.0, {255, 0, 0}, 1, 0);
 			TE_SendToAll();
+
+			pAim[3] += 80.0;
+			AttachSprite(cilent, SpawnPointVMT, true, pAim);
 		}
 		else
 		{
