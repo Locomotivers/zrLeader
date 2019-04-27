@@ -6,7 +6,7 @@
 #include <zombiereloaded>
 #include <leader>
 
-#define PLUGIN_VERSION "2.9"
+#define PLUGIN_VERSION "2.10.1"
 #pragma newdecls required
 
 int leaderMVP, leaderScore, currentSprite = -1, spriteEntities[MAXPLAYERS+1], markerEntities[MAXPLAYERS+1], leaderClient = -1;
@@ -18,13 +18,18 @@ ConVar g_cVDefendVTF = null;
 ConVar g_cVDefendVMT = null;
 ConVar g_cVFollowVTF = null;
 ConVar g_cVFollowVMT = null;
+ConVar g_cVSpawnVTF = null;
+ConVar g_cVSpawnVMT = null;
 
 ConVar g_cVAllowVoting = null;
+ConVar g_cVSpawnPointRad = null;
 
 char DefendVMT[PLATFORM_MAX_PATH];
 char DefendVTF[PLATFORM_MAX_PATH];
 char FollowVMT[PLATFORM_MAX_PATH];
 char FollowVTF[PLATFORM_MAX_PATH];
+char SpawnVTF[PLATFORM_MAX_PATH];
+char SpawnVMT[PLATFORM_MAX_PATH];
 char leaderTag[64];
 
 int g_BeamSprite = -1;
@@ -32,6 +37,8 @@ int g_HaloSprite = -1;
 int greyColor[4] = {128, 128, 128, 255};
 int g_BeaconSerial[MAXPLAYERS+1] = { 0, ... };
 int g_Serial_Gen = 0;
+
+float radSpawnPoint = 0.00;
 
 public Plugin myinfo = {
 	name = "Leader",
@@ -55,18 +62,26 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_currentleader", CurrentLeader);
 	RegConsoleCmd("sm_voteleader", VoteLeader);
 	RegAdminCmd("sm_removeleader", RemoveTheLeader, ADMFLAG_GENERIC);
+	RegConsoleCmd("sm_resignleader", ResignLeader);
+	RegConsoleCmd("sm_spawnpoint", SpawnPointMarker);
 
 	g_cVDefendVMT = CreateConVar("sm_leader_defend_vmt", "materials/sg/sgdefend.vmt", "The defend here .vmt file");
 	g_cVDefendVTF = CreateConVar("sm_leader_defend_vtf", "materials/sg/sgdefend.vtf", "The defend here .vtf file");
 	g_cVFollowVMT = CreateConVar("sm_leader_follow_vmt", "materials/sg/sgfollow.vmt", "The follow me .vmt file");
 	g_cVFollowVTF = CreateConVar("sm_leader_follow_vtf", "materials/sg/sgfollow.vtf", "The follow me .vtf file");
+	g_cVSpawnVMT = = CreateConVar("sm_leader_spawn_vmt", "materials/gfl/gflspawn.vmt", "The spawn point indicator .vmt file");
+	g_cVSpawnVTF = = CreateConVar("sm_leader_spawn_vtf", "materials/gfl/gflspawn.vtf", "The spawn point indicator .vtf file");
 	g_cVAllowVoting = CreateConVar("sm_leader_allow_votes", "1", "Determines whether players can vote for leaders.");
+	g_cVSpawnPointRad = CreateConVar("sm_leader_spawn_rad", "375.00", "Determines radius of warning ring.");
 
 	g_cVDefendVMT.AddChangeHook(ConVarChange);
 	g_cVDefendVTF.AddChangeHook(ConVarChange);
 	g_cVFollowVMT.AddChangeHook(ConVarChange);
 	g_cVFollowVTF.AddChangeHook(ConVarChange);
+	g_cVSpawnVMT.AddChangeHook(ConVarChange);
+	g_cVSpawnVTF.AddChangeHook(ConVarChange);
 	g_cVAllowVoting.AddChangeHook(ConVarChange);
+	g_cVSpawnPointRad.AddChangeHook(ConVarChange);
 
 	AutoExecConfig(true, "leader");
 
@@ -74,18 +89,25 @@ public void OnPluginStart()
 	g_cVDefendVMT.GetString(DefendVMT, sizeof(DefendVMT));
 	g_cVFollowVTF.GetString(FollowVTF, sizeof(FollowVTF));
 	g_cVFollowVMT.GetString(FollowVMT, sizeof(FollowVMT));
+	g_cVSpawnVTF.GetString(FollowVTF, sizeof(SpawnVTF));
+	g_cVSpawnVMT.GetString(FollowVMT, sizeof(SpawnVMT));
 
 	AddFileToDownloadsTable(DefendVTF);
 	AddFileToDownloadsTable(DefendVMT);
 	AddFileToDownloadsTable(FollowVTF);
 	AddFileToDownloadsTable(FollowVMT);
+	AddFileToDownloadsTable(SpawnVTF);
+	AddFileToDownloadsTable(SpawnVMF);
 
 	PrecacheGeneric(DefendVTF, true);
 	PrecacheGeneric(DefendVMT, true);
 	PrecacheGeneric(FollowVTF, true);
 	PrecacheGeneric(FollowVMT, true);
+	PrecacheGeneric(SpawnVTF, true);
+	PrecacheGeneric(SpawnVMF, true);
 
 	allowVoting = g_cVAllowVoting.BoolValue;
+	radSpawnPoint = g_cVSpawnPointRad.FloatValue;
 
 	RegPluginLibrary("leader");
 
@@ -121,18 +143,26 @@ public void ConVarChange(ConVar CVar, const char[] oldVal, const char[] newVal)
 	g_cVDefendVMT.GetString(DefendVMT, sizeof(DefendVMT));
 	g_cVFollowVTF.GetString(FollowVTF, sizeof(FollowVTF));
 	g_cVFollowVMT.GetString(FollowVMT, sizeof(FollowVMT));
+	g_cVSpawnVTF.GetString(FollowVTF, sizeof(SpawnVTF));
+	g_cVSpawnVMT.GetString(FollowVMT, sizeof(SpawnVMT));
 
 	AddFileToDownloadsTable(DefendVTF);
 	AddFileToDownloadsTable(DefendVMT);
 	AddFileToDownloadsTable(FollowVTF);
 	AddFileToDownloadsTable(FollowVMT);
+	AddFileToDownloadsTable(SpawnVTF);
+	AddFileToDownloadsTable(SpawnVMF);
 
 	PrecacheGeneric(DefendVTF, true);
 	PrecacheGeneric(DefendVMT, true);
 	PrecacheGeneric(FollowVTF, true);
 	PrecacheGeneric(FollowVMT, true);
+	PrecacheGeneric(SpawnVTF, true);
+	PrecacheGeneric(SpawnVMF, true);
 
 	allowVoting = g_cVAllowVoting.BoolValue;
+	radSpawnPoint = g_cVSpawnPointRad.FloatValue;
+
 }
 
 public void OnMapStart()
@@ -141,11 +171,15 @@ public void OnMapStart()
 	AddFileToDownloadsTable(DefendVMT);
 	AddFileToDownloadsTable(FollowVTF);
 	AddFileToDownloadsTable(FollowVMT);
+	AddFileToDownloadsTable(SpawnVTF);
+	AddFileToDownloadsTable(SpawnVMF);
 
 	PrecacheGeneric(DefendVTF, true);
 	PrecacheGeneric(DefendVMT, true);
 	PrecacheGeneric(FollowVTF, true);
 	PrecacheGeneric(FollowVMT, true);
+	PrecacheGeneric(SpawnVTF, true);
+	PrecacheGeneric(SpawnVMF, true);
 
 	Handle gameConfig = LoadGameConfigFile("funcommands.games");
 	if (gameConfig == null)
@@ -238,7 +272,7 @@ public Action Timer_Beacon(Handle timer, any value)
 	return Plugin_Continue;
 }
 
-public int AttachSprite(int client, char[] sprite) //https://forums.alliedmods.net/showpost.php?p=1880207&postcount=5
+public int AttachSprite(int client, char[] sprite, bool fAlt = false, float aimVec = NULL_VECTOR) //https://forums.alliedmods.net/showpost.php?p=1880207&postcount=5
 {
 	if(!IsPlayerAlive(client))
 	{
@@ -265,7 +299,8 @@ public int AttachSprite(int client, char[] sprite) //https://forums.alliedmods.n
 	DispatchKeyValue(Ent, "rendermode", "1");
 	DispatchKeyValue(Ent, "rendercolor", "255 255 255");
 	DispatchSpawn(Ent);
-	TeleportEntity(Ent, Origin, NULL_VECTOR, NULL_VECTOR);
+	if(!fAlt) TeleportEntity(Ent, Origin, NULL_VECTOR, NULL_VECTOR);
+	else TeleportEntity(Ent, aimVec, NULL_VECTOR, NULL_VECTOR);
 	SetVariantString(iTarget);
 	AcceptEntityInput(Ent, "SetParent", Ent, Ent, 0);
 
@@ -889,7 +924,7 @@ public Action VoteLeader(int client, int argc)
 	return Plugin_Handled;
 }
 
-public Action Resign(int cilent, int args)
+public Action ResignLeader(int cilent, int args)
 {
 	if(IsVaildLeader(client))
 	{
@@ -936,16 +971,39 @@ public Action DefendorFollow(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action DangerMarker(int cilent, int args)
+public Action SpawnPointMarker(int cilent, int args)
 {
 	if(IsVaildLeader(client))
 	{
+
+		float pEyes[3], pEyeAngle[3], pVec[3];
 		
+		GetClientEyePosition(cilent, pEyes);
+		GetClientEyeAngles(cilent, pEyeAngle);
+		
+		TR_TraceRayFilter(pEyes, pEyeAngle, MASK_SOLID, RayType_Infinite, TraceRay_DontHitSelf, cilent);
+		if(TR_DidHit())
+		{
+			TR_GetEndPosition(pAim);
+			
+			AttachSprite(cilent, SpawnPointVMT, true, pAim);
+
+			TE_SetupBeamRingPoint(pAim, radSpawnPoint, radSpawnPoint+.5, g_BeamSprite, g_HaloSprite, 0, 10, 20.0, 5.0, 0.0, {255, 0, 0}, 1, 0);
+			TE_SendToAll();
+		}
+		else
+		{
+			PrintToChat(cilent,"[SM] Don't aim yourself and try again!")
+			return Plugin_Handled;
+		}
 	}
 	else
 		PrintToChat(cilent,"[SM] You are not currently leader");
 	return Plugin_Handled;
 }
+
+
+public bool TraceRay_DontHitSelf(int target, mask, int cilent) {return (target != cilent);}
 
 bool IsVaildLeader(int cilent)
 {
