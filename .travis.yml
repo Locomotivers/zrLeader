@@ -6,6 +6,7 @@ sudo: false
 addons:
     apt_packages:
         - lib32stdc++6
+        - git
 
 # Set the build environment
 env:
@@ -18,8 +19,10 @@ install:
     - tar -xzf $(cat sourcemod-latest-linux)
 before_script:
     - cd addons/sourcemod/scripting/
-    - wget -r --no-parent "https://raw.githubusercontent.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition/tree/master/src/"
-    - rm zombiereloaded.sp
+    - git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git:zrsrc
+    - rm ./zrsrc/src/zombiereloaded.sp
+    - rmdir ./zrsrc/src/testsuite/
+    - mv ./zrsrc/src/ .
 
 
     - chmod +x spcomp
