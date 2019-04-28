@@ -1,0 +1,58 @@
+# Thanks to 50Wliu &  Batfoxkid for travis script!
+# Use the new container-based infrastructure 
+sudo: false
+
+# Install some apt packages needed for spcomp
+addons:
+    apt_packages:
+        - lib32stdc++6
+
+# Set the build environment
+env:
+    - SMVERSION=1.9 # Stable
+    - SMVERSION=1.10 # Unstable
+
+# And compile!
+install:
+    - wget --input-file=http://sourcemod.net/smdrop/$SMVERSION/sourcemod-latest-linux
+    - tar -xzf $(cat sourcemod-latest-linux)
+before_script:
+    - cd addons/sourcemod/scripting/
+    - wget -r --no-parent "https://raw.githubusercontent.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition/tree/master/src/" -O ./
+    - rm zombiereloaded.sp
+
+
+    - chmod +x spcomp
+    - mkdir compiled compiled/zrleader
+script: ./compile.sh leader2.sp
+
+# Releases
+before_deploy:
+    - cd compiled/zrleader
+    - rename 's/.smx/' *.smx
+    - cd ../../../
+    - mkdir zrLeader zrLeader/addons zrLeader/addons/sourcemod zrLeader/addons/sourcemod/configs zrLeader/addons/sourcemod/scripting zrLeader/addons/sourcemod/scripting/include 
+    - mv scripting/leader2.sp zrLeader/addons/sourcemod/scripting/
+    - mv scripting/compiled zrLeader/addons/sourcemod/plugins
+    - mv scripting/include/zrLeader* zrLeader/addons/sourcemod/scripting/include/
+    - mv ../../materials zrLeader/
+
+    - zip -rq zrLeader zrLeader
+    - tar -czf zrLeader.tar.gz zrLeader
+deploy:
+    provider: releases
+    api_key:
+        secure: ZaskbCM4yUox7hv5cr_NAA
+    file:
+        - zrLeader.zip
+        - zrLeader.tar.gz
+        - zrLeader/addons/sourcemod/plugins/leader2.smx
+        - zrLeader/addons/sourcemod/scripting/leader2.sp
+    skip_cleanup: true
+    on:
+        repo: Locomotivers/zrLeader
+        tags: true
+
+# Notifications
+notifications:
+    email: false
