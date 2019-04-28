@@ -6,7 +6,7 @@
 #include <zombiereloaded>
 #include <leader>
 
-#define PLUGIN_VERSION "2.10.1"
+#define PLUGIN_VERSION "2.11.5"
 #pragma newdecls required
 
 int leaderMVP, leaderScore, currentSprite = -1, spriteEntities[MAXPLAYERS+1], markerEntities[MAXPLAYERS+1], leaderClient = -1;
@@ -26,7 +26,7 @@ ConVar g_cVAllowVoting = null;
 ConVar g_cVSpawnPointRad = null;
 ConVar g_cVMarkerTimeLimit = null;
 ConVar g_cVMarkerWidth = null;
-ConVar g_cVMarkerColor = = null;
+ConVar g_cVMarkerColor = null;
 
 char DefendVMT[PLATFORM_MAX_PATH];
 char DefendVTF[PLATFORM_MAX_PATH];
@@ -50,7 +50,7 @@ int spawnMarkColor[4] = {0, ...};
 float spawnMarkTime, spawnMarkWidth;
 float spawnMarkRadius = 0.00;
 
-Handle g_hSpawnMarkerTimer = INVALID_HANDLE;
+Handle g_hSpawnMarkerTimer = null;
 
 public Plugin myinfo = {
 	name = "Leader",
@@ -89,8 +89,8 @@ public void OnPluginStart()
 	g_cVDefendVTF = CreateConVar("sm_leader_defend_vtf", "materials/sg/sgdefend.vtf", "The defend here .vtf file");
 	g_cVFollowVMT = CreateConVar("sm_leader_follow_vmt", "materials/sg/sgfollow.vmt", "The follow me .vmt file");
 	g_cVFollowVTF = CreateConVar("sm_leader_follow_vtf", "materials/sg/sgfollow.vtf", "The follow me .vtf file");
-	g_cVSpawnVMT = CreateConVar("sm_leader_spawn_vmt", "materials/gfl/defend4.vmt", "The spawn point indicator .vmt file");
-	g_cVSpawnVTF = CreateConVar("sm_leader_spawn_vtf", "materials/gfl/defend4.vtf", "The spawn point indicator .vtf file");
+	g_cVSpawnVMT = CreateConVar("sm_leader_spawn_vmt", "materials/sg/sgdefend.vmt", "The spawn point indicator .vmt file");
+	g_cVSpawnVTF = CreateConVar("sm_leader_spawn_vtf", "materials/sg/sgdefend.vtf", "The spawn point indicator .vtf file");
 	
 	g_cVAllowVoting = CreateConVar("sm_leader_allow_votes", "1", "Determines whether players can vote for leaders.");
 	
@@ -136,13 +136,13 @@ public void OnPluginStart()
 
 	char split[4][3];
 	g_cVMarkerColor.GetString(sColorCode, sizeof(sColorCode));
-	ExplodeString(sColorCode, split, sizeof(split), sizeof(split[]));
-	for(i = 0; i < 4 ; i++){
-		if (IsCharNumeric(split[i])){
-			StringToInt(split[i], spawnMarkColor[i])
+	ExplodeString(sColorCode, ",", split, 4, 3);
+	for(int i = 0; i < 4; i++){
+		if ((StringToInt(split[i], spawnMarkColor[i])) != 0){
+			StringToInt(split[i], spawnMarkColor[i]);
 			if(spawnMarkColor[i] < 0 || spawnMarkColor[i] > 255){
 				LogToGame("[Leader] Failed to convert RGBO due to index is out of range (0 - 255). Check your cvar input!");
-				spawnMarkColor[] = redColor;
+				spawnMarkColor = redColor;
 				i = 5;	
 			}
 		}
@@ -155,7 +155,7 @@ public void OnPluginStart()
 
 	allowVoting = g_cVAllowVoting.BoolValue;
 	spawnMarkRadius = g_cVSpawnPointRad.FloatValue;
-	spawnMarkTime = g_cVMarkTimeLimit.FloatValue;
+	spawnMarkTime = g_cVMarkerTimeLimit.FloatValue;
 	spawnMarkWidth = g_cVMarkerWidth.FloatValue;
 
 
@@ -213,13 +213,13 @@ public void ConVarChange(ConVar CVar, const char[] oldVal, const char[] newVal)
 	
 	char split[4][3];
 	g_cVMarkerColor.GetString(sColorCode, sizeof(sColorCode));
-	ExplodeString(sColorCode, split, sizeof(split), sizeof(split[]));
-	for(i = 0; i < 4 ; i++){
-		if (IsCharNumeric(split[i])){
-			StringToInt(split[i], spawnMarkColor[i])
+	ExplodeString(sColorCode, ",", split, 4, 3);
+	for(int i = 0; i < 4 ; i++){
+		if ((StringToInt(split[i], spawnMarkColor[i])) != 0){
+			StringToInt(split[i], spawnMarkColor[i]);
 			if(spawnMarkColor[i] < 0 || spawnMarkColor[i] > 255){
 				LogToGame("[Leader] Failed to convert RGBO due to index is out of range (0 - 255). Check your cvar input!");
-				spawnMarkColor[] = redColor;
+				spawnMarkColor = redColor;
 				i = 5;	
 			}
 		}
@@ -232,7 +232,7 @@ public void ConVarChange(ConVar CVar, const char[] oldVal, const char[] newVal)
 
 	allowVoting = g_cVAllowVoting.BoolValue;
 	spawnMarkRadius = g_cVSpawnPointRad.FloatValue;
-	spawnMarkTime = g_cVMarkTimeLimit.FloatValue;
+	spawnMarkTime = g_cVMarkerWidth.FloatValue;
 	spawnMarkWidth = g_cVMarkerWidth.FloatValue;
 
 }
@@ -450,7 +450,9 @@ public void RemoveLeader(int client)
 		KillBeacon(client);
 	}
 
-	delete g_hSpawnMakerTimer;
+	if(g_hSpawnMarkerTimer != null){
+		delete g_hSpawnMarkerTimer;
+	}
 
 	currentSprite = -1;
 	leaderClient = -1;
@@ -530,7 +532,7 @@ public Action Leader(int client, int args)
 
 			if(target == leaderClient)
 			{
-				LeaderMenu(target);
+				//LeaderMenu(target);
 			}
 			else
 			{
@@ -538,8 +540,8 @@ public Action Leader(int client, int args)
 				{
 					SetLeader(target);
 					PrintToChatAll("[SM] %N is the new leader!", target);
-					PrintToChat(target, "[SM] You are now the leader! Type !leader to open up the leader menu.");
-					LeaderMenu(target);
+					PrintToChat(target, "[SM] You are now the leader! Type !lmenu to open up the leader menu.");
+					//LeaderMenu(target);
 				}
 				else
 				{
@@ -552,7 +554,7 @@ public Action Leader(int client, int args)
 			if(client == leaderClient)
 			{
 				//LeaderMenu(client);
-				PrintToChat(target, "[SM] You may use the leader functions now with command or menu (!lmenu).");
+				PrintToChat(client, "[SM] You may use the leader functions now with command or menu (!lmenu).");
 				return Plugin_Handled;
 			}
 			if(IsPlayerAlive(client))
@@ -574,7 +576,7 @@ public Action Leader(int client, int args)
 	}
 	if(client == leaderClient)
 	{
-		LeaderMenu(client);
+		//LeaderMenu(client);
 	}
 	return Plugin_Handled;
 }
@@ -1027,13 +1029,14 @@ public Action MarkerToggle(int client, int args){
 		RemoveMarker(client);
 		markerActive = false;
 
-		if(g_hSpawnMarkerTimer != INVALID_HANDLE)	delete g_hSpawnMakerTimer;
+		if(g_hSpawnMarkerTimer != null){
+			delete g_hSpawnMarkerTimer;
+		}
 
 		if(cType[0] == '+')
 		{
 			if(StrEqual(cType, "+defend"))
 			{
-				spriteEntities[client] = AttachSprite(client, DefendVMT);
 				markerEntities[client] = SpawnMarker(client, DefendVMT, NULL_VECTOR);
 				PrintToChat(client, "[SM] 'Defend Here' marker placed.");
 				currentSprite = 0;
@@ -1048,7 +1051,7 @@ public Action MarkerToggle(int client, int args){
 			else if (StrEqual(cType, "+spawn"))
 			{
 				markerActive = SpawnPointMarker(client);
-				g_hSpawnMarkerTimer = CreateTimer(spawnMarkTime, SpawnerTime, client);
+				g_hSpawnMarkerTimer = CreateTimer(spawnMarkTime-2.0, SpawnerTime, client, TIMER_FLAG_NO_MAPCHANGE);
 			}
 		}
 		else
@@ -1065,7 +1068,8 @@ public Action SpawnerTime(Handle timer, any client){
 
 	RemoveMarker(client);
 	markerActive = false;
-	PrintToChat(client, "[SM] Spawn marker has been removed!")
+	g_hSpawnMarkerTimer = null;
+	PrintToChat(client, "[SM] Spawn marker has been removed!");
 }
 
 public bool SpawnPointMarker(int client){
@@ -1086,7 +1090,7 @@ public bool SpawnPointMarker(int client){
 		pAim[2] += 80.0;
 		markerEntities[client] = SpawnMarker(client, SpawnVMT, pAim);
 		
-		PrintToChat(client, "[SM] Spawn indicator placed for %f secs!", );
+		PrintToChat(client, "[SM] Spawn indicator placed for %f secs!", spawnMarkTime);
 		return true;
 
 	}
