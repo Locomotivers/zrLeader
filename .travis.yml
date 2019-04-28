@@ -20,7 +20,7 @@ before_script:
     - cd addons/sourcemod/scripting/
     - git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
     - rm ./zrsrc/src/zombiereloaded.sp
-    - rmdir -rf ./zrsrc/src/testsuite/
+    - rm -r ./zrsrc/src/testsuite/
     - mv ./zrsrc/src/ .
 
 
