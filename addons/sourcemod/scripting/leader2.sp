@@ -35,12 +35,13 @@ char leaderTag[64];
 
 int g_BeamSprite = -1;
 int g_HaloSprite = -1;
+int g_LaserSprite = -1;
 int greyColor[4] = {128, 128, 128, 255};
-int redColor[4] = {255, 0, 0, 1};
+int redColor[4] = {255, 0, 0, 255};
 int g_BeaconSerial[MAXPLAYERS+1] = { 0, ... };
 int g_Serial_Gen = 0;
 
-float spawnMarkRadius = 375.00;
+float spawnMarkRadius = 100.00;
 
 public Plugin myinfo = {
 	name = "Leader",
@@ -78,11 +79,11 @@ public void OnPluginStart()
 	g_cVDefendVTF = CreateConVar("sm_leader_defend_vtf", "materials/sg/sgdefend.vtf", "The defend here .vtf file");
 	g_cVFollowVMT = CreateConVar("sm_leader_follow_vmt", "materials/sg/sgfollow.vmt", "The follow me .vmt file");
 	g_cVFollowVTF = CreateConVar("sm_leader_follow_vtf", "materials/sg/sgfollow.vtf", "The follow me .vtf file");
-	g_cVSpawnVMT = CreateConVar("sm_leader_spawn_vmt", "materials/gfl/gflspawn.vmt", "The spawn point indicator .vmt file");
-	g_cVSpawnVTF = CreateConVar("sm_leader_spawn_vtf", "materials/gfl/gflspawn.vtf", "The spawn point indicator .vtf file");
+	g_cVSpawnVMT = CreateConVar("sm_leader_spawn_vmt", "materials/gfl/defend4.vmt", "The spawn point indicator .vmt file");
+	g_cVSpawnVTF = CreateConVar("sm_leader_spawn_vtf", "materials/gfl/defend4.vtf", "The spawn point indicator .vtf file");
 	
 	g_cVAllowVoting = CreateConVar("sm_leader_allow_votes", "1", "Determines whether players can vote for leaders.");
-	g_cVSpawnPointRad = CreateConVar("sm_leader_spawn_rad", "375.00", "Determines radius of warning ring.");
+	g_cVSpawnPointRad = CreateConVar("sm_leader_spawn_rad", "100.00", "Determines radius of warning ring.");
 
 	g_cVDefendVMT.AddChangeHook(ConVarChange);
 	g_cVDefendVTF.AddChangeHook(ConVarChange);
@@ -99,8 +100,8 @@ public void OnPluginStart()
 	g_cVDefendVMT.GetString(DefendVMT, sizeof(DefendVMT));
 	g_cVFollowVTF.GetString(FollowVTF, sizeof(FollowVTF));
 	g_cVFollowVMT.GetString(FollowVMT, sizeof(FollowVMT));
-	g_cVSpawnVTF.GetString(FollowVTF, sizeof(SpawnVTF));
-	g_cVSpawnVMT.GetString(FollowVMT, sizeof(SpawnVMT));
+	g_cVSpawnVTF.GetString(SpawnVTF, sizeof(SpawnVTF));
+	g_cVSpawnVMT.GetString(SpawnVMT, sizeof(SpawnVMT));
 
 	AddFileToDownloadsTable(DefendVTF);
 	AddFileToDownloadsTable(DefendVMT);
@@ -153,8 +154,8 @@ public void ConVarChange(ConVar CVar, const char[] oldVal, const char[] newVal)
 	g_cVDefendVMT.GetString(DefendVMT, sizeof(DefendVMT));
 	g_cVFollowVTF.GetString(FollowVTF, sizeof(FollowVTF));
 	g_cVFollowVMT.GetString(FollowVMT, sizeof(FollowVMT));
-	g_cVSpawnVTF.GetString(FollowVTF, sizeof(SpawnVTF));
-	g_cVSpawnVMT.GetString(FollowVMT, sizeof(SpawnVMT));
+	g_cVSpawnVTF.GetString(SpawnVTF, sizeof(SpawnVTF));
+	g_cVSpawnVMT.GetString(SpawnVMT, sizeof(SpawnVMT));
 
 	AddFileToDownloadsTable(DefendVTF);
 	AddFileToDownloadsTable(DefendVMT);
@@ -206,6 +207,13 @@ public void OnMapStart()
 	if (GameConfGetKeyValue(gameConfig, "SpriteHalo", buffer, sizeof(buffer)) && buffer[0])
 	{
 		g_HaloSprite = PrecacheModel(buffer);
+	}
+	if(GameConfGetKeyValue(gameConfig, "SpriteLaser", buffer, sizeof(buffer) && buffer[0]))
+	{
+		g_LaserSprite = PrecacheModel(buffer);
+	}
+	else{
+		g_LaserSprite = PrecacheModel("materials/sprites/laserbeam.vmt");
 	}
 }
 
@@ -956,9 +964,9 @@ public Action MarkerToggle(int client, int args)
 		RemoveMarker(client);
 		markerActive = false;
 
-		if(StrContains(cType, "+"))
+		if(cType[0] == '+')
 		{
-			if(StrContains(cType, "defend"))
+			if(StrEqual(cType, "+defend"))
 			{
 				spriteEntities[client] = AttachSprite(client, DefendVMT);
 				markerEntities[client] = SpawnMarker(client, DefendVMT, NULL_VECTOR);
@@ -966,13 +974,13 @@ public Action MarkerToggle(int client, int args)
 				currentSprite = 0;
 				markerActive = true;
 			}
-			else if(StrContains(cType, "follow"))
+			else if(StrEqual(cType, "+follow"))
 			{
 				spriteEntities[client] = AttachSprite(client, FollowVMT);
 				PrintToChat(client, "[SM] Sprite changed to 'Follow Me'.");
 				currentSprite = 1;
 			}
-			else if (StrContains(cType, "spawn"))
+			else if (StrEqual(cType, "+spawn"))
 			{
 				markerActive = SpawnPointMarker(client);
 			}
@@ -994,15 +1002,17 @@ public bool SpawnPointMarker(int client)
 	GetClientEyePosition(client, pEyes);
 	GetClientEyeAngles(client, pEyeAngle);
 	
-	Handle trace = TR_TraceRayFilter(pEyes, pEyeAngle, MASK_SOLID, RayType_Infinite, TraceRay_DontHitSelf, client);
-	if(TR_DidHit(trace))
+	TR_TraceRayFilter(pEyes, pEyeAngle, MASK_SOLID, RayType_Infinite, TraceRay_DontHitSelf, client);
+	if(TR_DidHit())
 	{
-		TR_GetEndPosition(pAim, trace);
-		CloseHandle(trace);
+		TR_GetEndPosition(pAim);
 
-		TE_SetupBeamRingPoint(pAim, spawnMarkRadius, spawnMarkRadius + 0.5, g_BeamSprite, g_HaloSprite, 0, 10, 20.0, 5.0, 0.0, redColor, 1, 0);
+		pAim[2] += 0.5;
+		//                                                                                                 EndF            Ampli         Speed
+		TE_SetupBeamRingPoint(pAim, spawnMarkRadius, spawnMarkRadius + 0.5, g_LaserSprite, g_HaloSprite, 0, 1, 200.0, 2.5, 0.0, redColor, 1, 0);
+		//                     ce     stR              end R                  ModelIndex     HaloIndex  FrameS  Life  Width
 		TE_SendToAll();
-
+		// https://forums.alliedmods.net/showthread.php?t=141518&page=2
 		pAim[2] += 80.0;
 		markerEntities[client] = SpawnMarker(client, SpawnVMT, pAim);
 		PrintToChat(client, "[SM] Spawn indicator placed!");
