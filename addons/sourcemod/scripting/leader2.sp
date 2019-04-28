@@ -22,7 +22,11 @@ ConVar g_cVSpawnVTF = null;
 ConVar g_cVSpawnVMT = null;
 
 ConVar g_cVAllowVoting = null;
+
 ConVar g_cVSpawnPointRad = null;
+ConVar g_cVMarkerTimeLimit = null;
+ConVar g_cVMarkerWidth = null;
+ConVar g_cVMarkerColor = = null;
 
 char DefendVMT[PLATFORM_MAX_PATH];
 char DefendVTF[PLATFORM_MAX_PATH];
@@ -32,6 +36,7 @@ char SpawnVTF[PLATFORM_MAX_PATH];
 char SpawnVMT[PLATFORM_MAX_PATH];
 
 char leaderTag[64];
+char sColorCode[20];
 
 int g_BeamSprite = -1;
 int g_HaloSprite = -1;
@@ -40,8 +45,12 @@ int greyColor[4] = {128, 128, 128, 255};
 int redColor[4] = {255, 0, 0, 255};
 int g_BeaconSerial[MAXPLAYERS+1] = { 0, ... };
 int g_Serial_Gen = 0;
+int spawnMarkColor[4] = {0, ...};
 
-float spawnMarkRadius = 100.00;
+float spawnMarkTime, spawnMarkWidth;
+float spawnMarkRadius = 0.00;
+
+Handle g_hSpawnMarkerTimer = INVALID_HANDLE;
 
 public Plugin myinfo = {
 	name = "Leader",
@@ -73,6 +82,7 @@ public void OnPluginStart()
 	RegConsoleCmd("-follow", MarkerToggle);
 	RegConsoleCmd("+spawn", MarkerToggle);
 	RegConsoleCmd("-spawn", MarkerToggle);
+	RegConsoleCmd("sm_lmenu", LeaderMenuToggle);
 
 
 	g_cVDefendVMT = CreateConVar("sm_leader_defend_vmt", "materials/sg/sgdefend.vmt", "The defend here .vmt file");
@@ -83,7 +93,11 @@ public void OnPluginStart()
 	g_cVSpawnVTF = CreateConVar("sm_leader_spawn_vtf", "materials/gfl/defend4.vtf", "The spawn point indicator .vtf file");
 	
 	g_cVAllowVoting = CreateConVar("sm_leader_allow_votes", "1", "Determines whether players can vote for leaders.");
-	g_cVSpawnPointRad = CreateConVar("sm_leader_spawn_rad", "100.00", "Determines radius of warning ring.");
+	
+	g_cVSpawnPointRad = CreateConVar("sm_leader_spawn_rad", "150.00", "Determines radius of warning ring. Recommended not to go over 400 units.");
+	g_cVMarkerTimeLimit = CreateConVar("sm_leader_marker_time_limit", "40.00", "Determines life time of spawn indicator.");
+	g_cVMarkerWidth = CreateConVar("sm_leader_marker_width", "3.5", "Determines width of outer ring for spawn marker. *Do not go over 10 units or more!");
+	g_cVMarkerColor = CreateConVar("sm_leader_marker_color", "255,0,0,255", "Determines color of the outer ring! (R,G,B,Opacity) Range from 0~255");
 
 	g_cVDefendVMT.AddChangeHook(ConVarChange);
 	g_cVDefendVTF.AddChangeHook(ConVarChange);
@@ -93,6 +107,9 @@ public void OnPluginStart()
 	g_cVSpawnVTF.AddChangeHook(ConVarChange);
 	g_cVAllowVoting.AddChangeHook(ConVarChange);
 	g_cVSpawnPointRad.AddChangeHook(ConVarChange);
+	g_cVMarkerTimeLimit.AddChangeHook(ConVarChange);
+	g_cVMarkerWidth.AddChangeHook(ConVarChange);
+	g_cVMarkerColor.AddChangeHook(ConVarChange);
 
 	AutoExecConfig(true, "leader");
 
@@ -117,8 +134,31 @@ public void OnPluginStart()
 	PrecacheGeneric(SpawnVTF, true);
 	PrecacheGeneric(SpawnVMT, true);
 
+	char split[4][3];
+	g_cVMarkerColor.GetString(sColorCode, sizeof(sColorCode));
+	ExplodeString(sColorCode, split, sizeof(split), sizeof(split[]));
+	for(i = 0; i < 4 ; i++){
+		if (IsCharNumeric(split[i])){
+			StringToInt(split[i], spawnMarkColor[i])
+			if(spawnMarkColor[i] < 0 || spawnMarkColor[i] > 255){
+				LogToGame("[Leader] Failed to convert RGBO due to index is out of range (0 - 255). Check your cvar input!");
+				spawnMarkColor[] = redColor;
+				i = 5;	
+			}
+		}
+		else{
+			LogToGame("[Leader] Failed to convert RGBO to integer. Check your cvar input (R,G,B,Op) and within 0 to 255 range!");
+			spawnMarkColor = redColor;
+			i = 5;
+		}
+	}
+
 	allowVoting = g_cVAllowVoting.BoolValue;
 	spawnMarkRadius = g_cVSpawnPointRad.FloatValue;
+	spawnMarkTime = g_cVMarkTimeLimit.FloatValue;
+	spawnMarkWidth = g_cVMarkerWidth.FloatValue;
+
+
 
 	RegPluginLibrary("leader");
 
@@ -170,9 +210,30 @@ public void ConVarChange(ConVar CVar, const char[] oldVal, const char[] newVal)
 	PrecacheGeneric(FollowVMT, true);
 	PrecacheGeneric(SpawnVTF, true);
 	PrecacheGeneric(SpawnVMT, true);
+	
+	char split[4][3];
+	g_cVMarkerColor.GetString(sColorCode, sizeof(sColorCode));
+	ExplodeString(sColorCode, split, sizeof(split), sizeof(split[]));
+	for(i = 0; i < 4 ; i++){
+		if (IsCharNumeric(split[i])){
+			StringToInt(split[i], spawnMarkColor[i])
+			if(spawnMarkColor[i] < 0 || spawnMarkColor[i] > 255){
+				LogToGame("[Leader] Failed to convert RGBO due to index is out of range (0 - 255). Check your cvar input!");
+				spawnMarkColor[] = redColor;
+				i = 5;	
+			}
+		}
+		else{
+			LogToGame("[Leader] Failed to convert RGBO to integer. Check your cvar input (R,G,B,Op) and within 0 to 255 range!");
+			spawnMarkColor = redColor;
+			i = 5;
+		}
+	}
 
 	allowVoting = g_cVAllowVoting.BoolValue;
 	spawnMarkRadius = g_cVSpawnPointRad.FloatValue;
+	spawnMarkTime = g_cVMarkTimeLimit.FloatValue;
+	spawnMarkWidth = g_cVMarkerWidth.FloatValue;
 
 }
 
@@ -389,6 +450,8 @@ public void RemoveLeader(int client)
 		KillBeacon(client);
 	}
 
+	delete g_hSpawnMakerTimer;
+
 	currentSprite = -1;
 	leaderClient = -1;
 	markerActive = false;
@@ -488,15 +551,16 @@ public Action Leader(int client, int args)
 		{
 			if(client == leaderClient)
 			{
-				LeaderMenu(client);
+				//LeaderMenu(client);
+				PrintToChat(target, "[SM] You may use the leader functions now with command or menu (!lmenu).");
 				return Plugin_Handled;
 			}
 			if(IsPlayerAlive(client))
 			{
 				SetLeader(client);
 				PrintToChatAll("[SM] %N is the new leader!", client);
-				PrintToChat(client, "[SM] You are now the leader! Type !leader to open up the leader menu.");
-				LeaderMenu(client);
+				PrintToChat(client, "[SM] You are now the leader! Type !leader to open up the leader menu. (!lmenu)");
+				//LeaderMenu(client);
 			}
 			else
 			{
@@ -953,8 +1017,7 @@ public Action ResignLeader(int client, int args)
 		PrintToChat(client,"[SM] You are not currently leader");
 	return Plugin_Handled;
 }
-public Action MarkerToggle(int client, int args)
-{
+public Action MarkerToggle(int client, int args){
 	char cType[32];
 	GetCmdArg(0, cType, sizeof(cType));
 
@@ -963,6 +1026,8 @@ public Action MarkerToggle(int client, int args)
 		RemoveSprite(client);
 		RemoveMarker(client);
 		markerActive = false;
+
+		if(g_hSpawnMarkerTimer != INVALID_HANDLE)	delete g_hSpawnMakerTimer;
 
 		if(cType[0] == '+')
 		{
@@ -983,6 +1048,7 @@ public Action MarkerToggle(int client, int args)
 			else if (StrEqual(cType, "+spawn"))
 			{
 				markerActive = SpawnPointMarker(client);
+				g_hSpawnMarkerTimer = CreateTimer(spawnMarkTime, SpawnerTime, client);
 			}
 		}
 		else
@@ -995,8 +1061,14 @@ public Action MarkerToggle(int client, int args)
 	return Plugin_Handled;
 }
 
-public bool SpawnPointMarker(int client)
-{
+public Action SpawnerTime(Handle timer, any client){
+
+	RemoveMarker(client);
+	markerActive = false;
+	PrintToChat(client, "[SM] Spawn marker has been removed!")
+}
+
+public bool SpawnPointMarker(int client){
 	float pEyes[3], pEyeAngle[3], pAim[3];
 	
 	GetClientEyePosition(client, pEyes);
@@ -1008,14 +1080,13 @@ public bool SpawnPointMarker(int client)
 		TR_GetEndPosition(pAim);
 
 		pAim[2] += 0.5;
-		//                                                                                                 EndF            Ampli         Speed
-		TE_SetupBeamRingPoint(pAim, spawnMarkRadius, spawnMarkRadius + 0.5, g_LaserSprite, g_HaloSprite, 0, 1, 200.0, 2.5, 0.0, redColor, 1, 0);
-		//                     ce     stR              end R                  ModelIndex     HaloIndex  FrameS  Life  Width
+		TE_SetupBeamRingPoint(pAim, spawnMarkRadius, spawnMarkRadius + 0.5, g_LaserSprite, g_HaloSprite, 0, 1, spawnMarkTime, spawnMarkWidth, 0.0, redColor, 1, 0);
 		TE_SendToAll();
-		// https://forums.alliedmods.net/showthread.php?t=141518&page=2
+		
 		pAim[2] += 80.0;
 		markerEntities[client] = SpawnMarker(client, SpawnVMT, pAim);
-		PrintToChat(client, "[SM] Spawn indicator placed!");
+		
+		PrintToChat(client, "[SM] Spawn indicator placed for %f secs!", );
 		return true;
 
 	}
@@ -1028,4 +1099,11 @@ public bool SpawnPointMarker(int client)
 
 bool TraceRay_DontHitSelf(int entity, int mask) {
 	return entity > MaxClients;
+}
+
+public Action LeaderMenuToggle (int client, int args){
+	if(client == leaderClient)	LeaderMenu(client);
+	else	PrintToChat(client, "[SM] You have to be leader to use the leader menu!");
+	
+	return Plugin_Handled;
 }
