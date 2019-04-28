@@ -18,7 +18,7 @@ install:
     - tar -xzf $(cat sourcemod-latest-linux)
 before_script:
     - cd addons/sourcemod/scripting/
-    - wget -r --no-parent "https://raw.githubusercontent.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition/tree/master/src/" -O ./
+    - wget -r --no-parent "https://raw.githubusercontent.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition/tree/master/src/"
     - rm zombiereloaded.sp
 
 
