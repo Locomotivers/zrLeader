@@ -21,7 +21,8 @@ before_script:
     - git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
     - rm ./zrsrc/src/zombiereloaded.sp
     - rm -r ./zrsrc/src/testsuite/
-    - mv ./zrsrc/src/ .
+    - mv ./zrsrc/src/include .
+    - mv ./zrsrc/src/zr .
 
 
     - chmod +x spcomp
