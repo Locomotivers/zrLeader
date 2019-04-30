@@ -32,7 +32,7 @@ before_deploy:
 deploy:
   provider: releases
   api_key:
-    secure: Rb92eFJkiElPIo4pt8MIVvYPABDV02dGVpRQ6OZPZdaVaMBqOxXKZfEAEsQ+EvWNTX4IFsNzkFADO+QPxAMXCKODdGT9xuhR2M2fgwGA+JoeU/cbNO6II5f4YJ6QYL2fV3MHdXaBzP8wBqgt0Ytbbt8kTO4H28JEBCmKOKgUEdHYoUhR6R1zHlNrc1NQC9Oui/1X46mGFrH7JzpAw6y3ZPx88rANhlUTFGwz/3nuUbJ3AT5/Sg6d9USJPZGfzZi3Zr14UWizMxTp59pvVurvBts8fBJr6bjM3x6cUz4C1sEYD71D//e3z5DwfmmA84+QWg6X3MqjITVKiAp1NVJRnIbYMt/EJ2ZvaB8j0I778h3RqVo8jyi2PZ/v1x4UONpNX1Dhss35Ga1CsekfS+/x8RPW2URPvaVXYXbIjJH8I+b0fP3mvOly00nvjl2dx/0xNLS+UtFKLfzwv95HpuuWTUUIFXcJWTfPrOdecYsmsgYgZN/HfWiVYBPA33/5AjZheclekM9srwbyvZjpcfztGPIa2CODftNOuoG2AhM5F8Nk8luarFehuBGRfKkjHNdeA2CmrelBfC4tL70ouJm/BmAiBb+lxRDxPrOvidwpbJs5PQ3/LTHJZQcPfeCNEykR21poI3yXnboPZWsl1QPFGsBoTFhbqBNHxCpTZQsGd88=
+    secure: GcaTebUmAIjTkvogTMrBUhZAAje22BffkecVaZAxA1PqV1jvOY7uR7fusadlfNUIyoFefgv4n8/kV75tf1wlD+vHg6Nj8/Jr7/Z3b+GDCAsRTAOCHZapG9Ye7MQ9LZ7FhobPYIQYQ+SMuHYN4YQW6nvxLNiYXdMNkr5Ic1czS59FCCgz/fZJ2G8InnwVUXdTx0VZeY5x+R0oLofP+yRkhjyDC06z/c4DTR42U64XxFN+pHlA76s07yfq6rzaK4AStby4HyglqQUwR2lv629oerOhfozJWeWmEluC3Gf/ODXJ+dRlY3doWID97GYLaaESckEHQjdf+w1hCUgXlTJWQKV1jeEPu9+rtEovUZ8vvfWBOYsJr/ONMLO+/hg//+XzUohb8bk5MEbEE3ej+UjhAe2dMdxU9mxPe9F6j6G2uTsuHcN0fMCQTHFJwWU7mguFyueeZBjfH+IIQBZ07sYn4bfwSPLjk07SNF41s5lvvZ1QfOQx8rfJQCkfE7PD7A/ilClVNLvc1tr8bcZxdI1BKTtKBDKevbnqPzXiQ77nLIqhBl5a0A0hFDuZSBXBpFKeiE+/xqD5R6bhyv69HwsNM5mfjhK6lwYNc1rRIUeQr3YeSR4vB3MeRGbY+FXOSin2ykPFbkqE09ARH1IpQjgCycePH1pER8/m0lQ5Tt17uyM=
   file: 
     - zrLeader.zip
     - zrLeader.tar.gz
@@ -40,3 +40,4 @@ deploy:
     - zrLeader/addons/sourcemod/scripting/leader2.sp
   on:
     repo: Locomotivers/zrLeader
+    branch: master
