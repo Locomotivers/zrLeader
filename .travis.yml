@@ -15,15 +15,15 @@ install:
   - tar -xzf $(cat sourcemod-latest-linux)
 
 before_script:
-  - cd addons/sourcemod/scripting/
-  - git clone "https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
-  - rm -r ./zrsrc/src/testsuite/
-  - cp -rl ./zrsrc/src/include ./
-  - mv ./zrsrc/src/zr/ ./
-  - rm -rf ./zrsrc/
+    - cd addons/sourcemod/scripting/
+    - git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
+    - rm -r ./zrsrc/src/testsuite/
+    - cp -rl ./zrsrc/src/include/ ./
+    - mv ./zrsrc/src/zr/ ./
+    - rm -rf ./zrsrc/
 
-  - chmod +x spcomp
-  - mkdir compiled compiled/zrleader
+    - chmod +x spcomp
+    - mkdir compiled compiled/zrleader
 
 script: "./compile.sh leader2.sp"
 
