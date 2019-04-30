@@ -29,7 +29,6 @@ script: "./compile.sh leader2.sp"
 
 before_deploy:
   - cd compiled/zrleader
-  - rename 's/.smx/' *.smx
   - cd ../../../
   - mkdir zrLeader zrLeader/addons zrLeader/addons/sourcemod zrLeader/addons/sourcemod/configs
     zrLeader/addons/sourcemod/scripting zrLeader/addons/sourcemod/scripting/include
