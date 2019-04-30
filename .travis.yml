@@ -1,4 +1,4 @@
-# Thanks to 50Wliu &  Batfoxkid for travis script!
+# Thanks to 50Wliu &  Batfoxkid for travis script!!
 # Use the new container-based infrastructure 
 sudo: false
 
@@ -21,9 +21,9 @@ before_script:
     - git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
     - rm ./zrsrc/src/zombiereloaded.sp
     - rm -r ./zrsrc/src/testsuite/
-    - mv ./zrsrc/src/include .
-    - mv ./zrsrc/src/zr .
-
+    - cp -rl ./zrsrc/src/include/ ./include/
+    - mv ./zrsrc/src/zr/ ./
+    - rm -rf ./zrsrc/
 
     - chmod +x spcomp
     - mkdir compiled compiled/zrleader
