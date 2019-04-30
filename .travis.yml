@@ -34,7 +34,7 @@ before_deploy:
     zrLeader/addons/sourcemod/scripting zrLeader/addons/sourcemod/scripting/include
   - mv scripting/leader2.sp zrLeader/addons/sourcemod/scripting/
   - mv scripting/compiled zrLeader/addons/sourcemod/plugins
-  - mv scripting/include/zrLeader* zrLeader/addons/sourcemod/scripting/include/
+  - mv scripting/include/* zrLeader/addons/sourcemod/scripting/include/
   - mv ../../materials zrLeader/
 
   - zip -rq zrLeader zrLeader
