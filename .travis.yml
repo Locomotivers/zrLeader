@@ -1,48 +1,40 @@
-#Thanks to 50Wilu & Batfoxkid for the travis script!
 sudo: false
-
-
 addons:
   apt_packages:
   - lib32stdc++6
-
 env:
 - SMVERSION=1.9
 - SMVERSION=1.10
-
 install:
-  - wget --input-file=http://sourcemod.net/smdrop/$SMVERSION/sourcemod-latest-linux
-  - tar -xzf $(cat sourcemod-latest-linux)
-
+- wget --input-file=http://sourcemod.net/smdrop/$SMVERSION/sourcemod-latest-linux
+- tar -xzf $(cat sourcemod-latest-linux)
 before_script:
-    - cd addons/sourcemod/scripting/
-    - git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
-    - rm -r ./zrsrc/src/testsuite/
-    - cp -rl ./zrsrc/src/include/ ./
-    - mv ./zrsrc/src/zr/ ./
-    - rm -rf ./zrsrc/
-
-    - chmod +x spcomp
-    - mkdir compiled compiled/zrleader
-
+- cd addons/sourcemod/scripting/
+- git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
+- rm -r ./zrsrc/src/testsuite/
+- cp -rl ./zrsrc/src/include/ ./
+- mv ./zrsrc/src/zr/ ./
+- rm -rf ./zrsrc/
+- chmod +x spcomp
+- mkdir compiled compiled/zrleader
 script: "./compile.sh leader2.sp"
-
 before_deploy:
-  - cd compiled/zrleader
-  - cd ../../../
-  - mkdir zrLeader zrLeader/addons zrLeader/addons/sourcemod zrLeader/addons/sourcemod/configs
-    zrLeader/addons/sourcemod/scripting zrLeader/addons/sourcemod/scripting/include
-  - mv scripting/leader2.sp zrLeader/addons/sourcemod/scripting/
-  - mv scripting/compiled zrLeader/addons/sourcemod/plugins
-  - mv scripting/include/* zrLeader/addons/sourcemod/scripting/include/
-  - mv ../../materials zrLeader/
-
-  - zip -rq zrLeader zrLeader
-  - tar -czf zrLeader.tar.gz zrLeader
+- cd compiled/zrleader
+- cd ../../../
+- mkdir zrLeader zrLeader/addons zrLeader/addons/sourcemod zrLeader/addons/sourcemod/configs
+  zrLeader/addons/sourcemod/scripting zrLeader/addons/sourcemod/scripting/include
+- mv scripting/leader2.sp zrLeader/addons/sourcemod/scripting/
+- mv scripting/compiled zrLeader/addons/sourcemod/plugins
+- mv scripting/include/* zrLeader/addons/sourcemod/scripting/include/
+- mv ../../materials zrLeader/
+- zip -rq zrLeader zrLeader
+- tar -czf zrLeader.tar.gz zrLeader
+notifications:
+  email: false
 deploy:
   provider: releases
   api_key:
-    secure: mbXOlFH14Wq9PJ2YVryN4PMdTMEUFLC+ha5EGy41tn9e86gtb6GIJzfTm8hNNPLjdqXBf2JubMhQ/SNCJPEobrHwN8rZW/Q4WT6yvX3+w1fBCWBbxzfDFsgxYVvPSJr2ezP25uPUZVQKyDQPb9yTYfsebd1dpSj4lQ7jR2FjBfvwuLeKrCb2RCeBfsK2S0aQ+f0v/IFDNGxx7BFBKlEz0NS1gy6eX91iYHz+vx05kNupFFcIPl/pIUsPJOaHhPAMdiLeWynWjx5REA0KsCKWUjb1HKygHXgPDAzlKrGHdC9SHax/LLD0UoYNv9spUmPvdvIuIhGIrAzerZo9QOjMQJavzgzi0ZnH9KQga+S/EfPtwgEonLSpPzUjWQEsDLGsye7vYBoeqc9JBC4PJ8OnmJCzh6nsw+vnLRg7z9ia7C1bvR2f/jsQWqZ8HAoB+7voOZt5F/YOJ+X1shmuJQHITqCMsJZYSijeoac9w1MSFr6KF4olcfwOgWM7TK93HU7aOzGUdT9TMgAxWhS95/0x6oSKizhXaVpuk2SG97vgGbnogK/rh3bmMOPtuuWrjIkZfdamDmSYiDrs/2pPqQmzIC/rncb0JQZoHuX1yJstyUALoPWFbSndjsb0x+d92cM4rBh74mo7guQDkksbme+2cDL6sW6NPuCHV/8SsTux7Mo=
+    secure: Nq0AKazaH9ZSr8Jg/LOwuh70VGNQ8JlcYaPNY+iqz/ZXrTvVTJp9fdi43hpWr8ocgucri1IkREm9npFQ6fmKZdP4ncoCf1e4gxRgX9/qsn7IPqG63TyAvcynh/tNStEHiwwsv1WPZvzd4x2FdA/4g5kmwy0HpiVSAUKspoKiuYjuZMA2b71kspaghUuJNgvUViX0SZI31pe/aWW5L3mhJm/nRTTI6jhIN79qWIe0FJjnmAGXadCHiC3yObHYDc8XdYVbLImBAK1DpW3Lr0SZ+6ZlwS9rIOS/jK0VdcRiPLvgStMMzhQWRjWepFvecvBOE7UXm8chaIPDHzuNuWeswZhiaqRAdFyDtMBE12EfXP1hHdXxzFWKtT4olpjQh7XvSIZwnOOrZ8Y2OjTXV0u5KGAfoLPtq9AdrepVpB6pQLas4NVziExwTHy+gnw9s5kVNtXR/JCbHzH5CHruBWptNvt+abuaY0fOOfkoATV5NML/+SPQkKZxzNEx/eTP+nUjxt1if7heUDIfc0IVjsXh/vPD1eGpApmrAyfVCAqb45lT6Ja2MDLNnhNNrkoFbzz9Jt2OGMjD4awmNmAjNZk8zHKBIMnddNAxoMRCPbKjZM4X14/MyFB4jag2hBnoPp7VrS2DksvblQgyUDH5nqKyQ8Do4hVvR9eulpFXOvybhzo=
   file: 
     - zrLeader.zip
     - zrLeader.tar.gz
@@ -50,5 +42,3 @@ deploy:
     - zrLeader/addons/sourcemod/scripting/leader2.sp
   on:
     repo: Locomotivers/zrLeader
-notifications:
-  email: false
