@@ -19,9 +19,8 @@ install:
 before_script:
     - cd addons/sourcemod/scripting/
     - git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
-    - rm ./zrsrc/src/zombiereloaded.sp
     - rm -r ./zrsrc/src/testsuite/
-    - cp -rl ./zrsrc/src/include/ ./include/
+    - cp -rl ./zrsrc/src/include/ ./
     - mv ./zrsrc/src/zr/ ./
     - rm -rf ./zrsrc/
 
