@@ -16,9 +16,6 @@ This plugin requires Zombie:Reloaded.
 * sm_leader_version - Leader Version (2.11.5)
 * sm_leader_allow_votes - Determines whether players can vote for leaders. (Default: "1")
 * sm_leader_spawn_rad - Determines radius of spawn marker. **Do not go over 400 units or more!** (Default: "150.00") 
-* sm_leader_marker_time_limit - Determines how long of spawn marker ring spawn into the field. **advise not to set timer higher since there is no other way to remove the ring besides wait** (Default: "40.0")
-* sm_leader_marker_width - Determines width of outer ring. **Do not go over 10 units or ring gets trippy!** (Default: "3.5")
-* sm_leader_marker_color - Determines color of spawn marker ring. There is failsafe in place and will default to red color with 100% opacity. (Default: "255,0,0,255")
 * sm_leader_defend_vmt - The defend here .vmt file (Default: "materials/sg/sgdefend.vmt")
 * sm_leader_defend_vtf - The defend here .vtf file (Default: "materials/sg/sgdefend.vtf")
 * sm_leader_follow_vmt - The follow me .vmt file (Default: "materials/sg/sgfollow.vtf")
@@ -32,11 +29,11 @@ This plugin requires Zombie:Reloaded.
 * sm_voteleader <player> - Votes for the specified player to be leader. Required votes is current player count / 10.
 * sm_removeleader (ADMFLAG_GENERIC) - Removes the current leader.
 * sm_lmenu - Opens up leader menu for current leader.
+* sm_mark - Marks where the player is looking at
+* sm_marker - Removes all marker
 **You can only spawn one of these markers one at a time**
 * +spawn - Places a spawn marker and ring where player is aiming at 
-* +defend - Places a defend marker above the leader player
-* +follow - Places a follow marker above leader player and follow the player around it
-* -spawn, -defend, -follow, sm_marker - Removes all marker from leader player.
+* -spawn - Removes all marker from leader player.
 * sm_resignleader - Allows leader to resign from leader.
 
 #### Planned Features
