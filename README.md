@@ -32,11 +32,11 @@ This plugin requires Zombie:Reloaded.
 * sm_voteleader <player> - Votes for the specified player to be leader. Required votes is current player count / 10.
 * sm_removeleader (ADMFLAG_GENERIC) - Removes the current leader.
 * sm_lmenu - Opens up leader menu for current leader.
+* sm_mark - Marks where the player is looking at
+* sm_marker - Removes all marker
 **You can only spawn one of these markers one at a time**
 * +spawn - Places a spawn marker and ring where player is aiming at 
-* +defend - Places a defend marker above the leader player
-* +follow - Places a follow marker above leader player and follow the player around it
-* -spawn, -defend, -follow, sm_marker - Removes all marker from leader player.
+* -spawn - Removes all marker from leader player.
 * sm_resignleader - Allows leader to resign from leader.
 
 #### Planned Features
