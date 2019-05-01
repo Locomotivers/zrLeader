@@ -992,7 +992,7 @@ public Action MarkerToggle(int client, int args)
 	{
 		if(cType[0] == '+')
 		{
-			if (StrEqual(cType, "+marker"))
+			if (StrEqual(cType, "+spawn"))
 			{
 				RemoveAimMarker(client);
 				AimMarkerActive = false;
