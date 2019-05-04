@@ -1,58 +1,43 @@
-# Thanks to 50Wliu &  Batfoxkid for travis script!
-# Use the new container-based infrastructure 
 sudo: false
-
-# Install some apt packages needed for spcomp
 addons:
-    apt_packages:
-        - lib32stdc++6
-
-# Set the build environment
+  apt_packages:
+  - lib32stdc++6
 env:
-    - SMVERSION=1.9 # Stable
-    - SMVERSION=1.10 # Unstable
-
-# And compile!
+- SMVERSION=1.9
+- SMVERSION=1.10
 install:
-    - wget --input-file=http://sourcemod.net/smdrop/$SMVERSION/sourcemod-latest-linux
-    - tar -xzf $(cat sourcemod-latest-linux)
+- wget --input-file=http://sourcemod.net/smdrop/$SMVERSION/sourcemod-latest-linux
+- tar -xzf $(cat sourcemod-latest-linux)
 before_script:
-    - cd addons/sourcemod/scripting/
-    - wget -r --no-parent "https://raw.githubusercontent.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition/tree/master/src/" -O ./
-    - rm zombiereloaded.sp
-
-
-    - chmod +x spcomp
-    - mkdir compiled compiled/zrleader
-script: ./compile.sh leader2.sp
-
-# Releases
+- cd addons/sourcemod/scripting/
+- git clone https://github.com/Franc1sco/sm-zombiereloaded-3-Franug-Edition.git zrsrc
+- rm -r ./zrsrc/src/testsuite/
+- cp -rl ./zrsrc/src/include/ ./
+- mv ./zrsrc/src/zr/ ./
+- rm -rf ./zrsrc/
+- chmod +x spcomp
+- mkdir compiled compiled/zrleader
+script: "./compile.sh leader2.sp"
 before_deploy:
-    - cd compiled/zrleader
-    - rename 's/.smx/' *.smx
-    - cd ../../../
-    - mkdir zrLeader zrLeader/addons zrLeader/addons/sourcemod zrLeader/addons/sourcemod/configs zrLeader/addons/sourcemod/scripting zrLeader/addons/sourcemod/scripting/include 
-    - mv scripting/leader2.sp zrLeader/addons/sourcemod/scripting/
-    - mv scripting/compiled zrLeader/addons/sourcemod/plugins
-    - mv scripting/include/zrLeader* zrLeader/addons/sourcemod/scripting/include/
-    - mv ../../materials zrLeader/
-
-    - zip -rq zrLeader zrLeader
-    - tar -czf zrLeader.tar.gz zrLeader
+- cd compiled/zrleader
+- cd ../../../
+- mkdir zrLeader zrLeader/addons zrLeader/addons/sourcemod zrLeader/addons/sourcemod/configs
+  zrLeader/addons/sourcemod/scripting zrLeader/addons/sourcemod/scripting/include
+- mv scripting/leader2.sp zrLeader/addons/sourcemod/scripting/
+- mv scripting/compiled zrLeader/addons/sourcemod/plugins
+- mv scripting/include/* zrLeader/addons/sourcemod/scripting/include/
+- mv ../../materials zrLeader/
+- zip -rq zrLeader zrLeader
+- tar -czf zrLeader.tar.gz zrLeader
 deploy:
-    provider: releases
-    api_key:
-        secure: ZaskbCM4yUox7hv5cr_NAA
-    file:
-        - zrLeader.zip
-        - zrLeader.tar.gz
-        - zrLeader/addons/sourcemod/plugins/leader2.smx
-        - zrLeader/addons/sourcemod/scripting/leader2.sp
-    skip_cleanup: true
-    on:
-        repo: Locomotivers/zrLeader
-        tags: true
-
-# Notifications
-notifications:
-    email: false
+  provider: releases
+  api_key:
+    secure: "ZU6jqjh6th+b3Ls+50dq2BVaP4qIUt/6Qg2S5bf5bdPKAufVWkekwPCv79mABKANbvEjCy8wwNf0YvVhSGC/9dXcXYW3Z0LFbi3I2DWhL15hL5eTjqHO1gdMzN+/8KfD/9f1XRhg2Ixb0FVmvCia5Z7j1jVgteyg5/nGrIvfcJ6Jb32IPzSITGK2MrtYc2UFP22hvy9wqqGHfyhQ0T4wis1WbaBJUQ9NLzgByxVuRk+Cg+/WG1C+JZFRYGqR/uTQ/CkWfXQ5YQ3yd7pavRFwHO25a1glDykv9y62abf7Oaa8zqV9mQ0dAq8D9Ojgj5CSknNd/mcL0HOFzoWeStdig9B7ctMU7IIXvcDN0fhsA33UemlrrIZNsCf+f41lwkrGp7jQ23L0U3IKwgJXqEWDhiEpaGIJi1RLKcTZX+7X6Tq9gJTasWgJFel0ZyqZk1WuGoYM/1/crHg63cl98E75U2FfnpvQImC/ih8LPS6wf60QeQTIVBRmTLxEMLlVaF7tgO78NrA0gG8LublUbq5anuqFPqPtC8OqP/zAOFLyXvqDJe6m00zRlGO708KxGNYZJFVZ6ungyrfJN2UwWt7HRf97/C0BtFg2cznOCpdXdTT7NXKbEUlYXTpmrsn8mVV3wIYDKaCroxIhk8uNrh5MwKvIBhWxn/re+OjB7emAHic="
+  file: 
+    - zrLeader.zip
+    - zrLeader.tar.gz
+    - zrLeader/addons/sourcemod/plugins/leader2.smx
+    - zrLeader/addons/sourcemod/scripting/leader2.sp
+  on:
+    repo: Locomotivers/zrLeader
+    branch: master
