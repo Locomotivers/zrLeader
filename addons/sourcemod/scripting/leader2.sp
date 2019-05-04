@@ -45,11 +45,12 @@ int g_Serial_Gen = 0;
 // Marker Stuffs
 ////////////////////////////////////
 float spawnMarkRadius = 0.00;
-float gF_MarkerPoints[3];
+float gF_MarkerPoints[2][3];
+
 
 int AimMarkerEntities[MAXPLAYERS+1];
 bool AimMarkerActive = false;
-
+bool AimMarkerType = false; // 0 for floor , 1 for wall
 Handle g_hSpawnMarkerTimer = null;
 
 public Plugin myinfo = {
@@ -1024,25 +1025,56 @@ public void RemoveAimMarker(int client)
 	AimMarkerEntities[client] = -1;
 }
 
+//Credit goes to AlexTheRegent for wall/floor calc
 public bool SpawnPointMarker(int client){
 	float pEyes[3], pEyeAngle[3], pAim[3];
+	float posX, posY;
 	
 	GetClientEyePosition(client, pEyes);
 	GetClientEyeAngles(client, pEyeAngle);
+
 	
 	TR_TraceRayFilter(pEyes, pEyeAngle, MASK_SOLID, RayType_Infinite, TraceRay_DontHitSelf, client);
 	if(TR_DidHit())
 	{
 		TR_GetEndPosition(pAim);
-		pAim[2] += 4.0;
+		TR_GetPlaneNormal(INVALID_HANDLE, pEyeAngle);
+		GetVectorAngles(pEyeAngle, pEyeAngle);
+		pEyeAngle[0] += 90.0;
+
+		if(pEyeAngle[0] >= 360.0 && pEyeAngle[0] < 420.0 && ((pEyeAngle[1] >= 0.0 && pEyeAngle[1] < 180.0) || (pEyeAngle[1] >= 220.0))){
+
+			pAim[2] += 4.0;
 		
-		gF_MarkerPoints[0] = pAim[0];
-		gF_MarkerPoints[1] = pAim[1];
-		gF_MarkerPoints[2] = pAim[2];
-		
-		TE_SetupBeamRingPoint(pAim, spawnMarkRadius, spawnMarkRadius + 0.5, g_LaserSprite, g_HaloSprite, 0, 1, 0.2, 2.0, 0.0, {255, 0, 0, 255}, 1, FBEAM_SOLID);
-		TE_SendToAll();
-		
+			gF_MarkerPoints[0][0] = pAim[0];
+			gF_MarkerPoints[0][1] = pAim[1];
+			gF_MarkerPoints[0][2] = pAim[2];
+			
+			TE_SetupBeamRingPoint(pAim, spawnMarkRadius, spawnMarkRadius + 0.5, g_LaserSprite, g_HaloSprite, 0, 1, 0.2, 2.0, 0.0, {255, 0, 0, 255}, 1, FBEAM_SOLID);
+			TE_SendToAll();
+			
+			AimMarkerType = false;
+		}
+		else{
+			posX = spawnMarkRadius * Cosine(0.0);
+			posY = spawnMarkRadius * Sine(0.0);
+
+			//Start Position
+			gF_MarkerPoints[0][0] = pAim[0];
+			gF_MarkerPoints[0][1] = pAim[1] + spawnMarkRadius;
+			gF_MarkerPoints[0][2] = pAim[2];
+
+			//End Position
+			gF_MarkerPoints[1][0] = pAim[0];
+			gF_MarkerPoints[1][1] = pAim[1] + posX;
+			gF_MarkerPoints[1][2] = pAim[2] + posY;
+
+			TE_SetupBeamPoints(gF_MarkerPoints[1], gF_MarkerPoints[1], g_LaserSprite, g_HaloSprite, 0, 0, 0.2, 2.0, 2.0, 0, 0.0, {255,0,0,255}, 1);
+			TE_SendToAll();
+
+			AimMarkerType = true;
+		}
+
 		pAim[2] += 100.0;
 		AimMarkerEntities[client] = SpawnMarker(client, SpawnVMT, pAim);
 		
@@ -1065,8 +1097,14 @@ public Action Timer_DrawMarkers(Handle timer)
 {
 	if (AimMarkerActive)
 	{
-		TE_SetupBeamRingPoint(gF_MarkerPoints, spawnMarkRadius, spawnMarkRadius + 0.5, g_LaserSprite, g_HaloSprite, 0, 1, 0.2, 2.0, 0.0, {255, 0, 0, 255}, 1, FBEAM_SOLID);
-		TE_SendToAll();
+		if(!(AimMarkerType)){
+			TE_SetupBeamRingPoint(gF_MarkerPoints[0], spawnMarkRadius, spawnMarkRadius + 0.5, g_LaserSprite, g_HaloSprite, 0, 1, 0.2, 2.0, 0.0, {255, 0, 0, 255}, 1, FBEAM_SOLID);
+			TE_SendToAll();
+		}
+		else{
+			TE_SetupBeamPoints(gF_MarkerPoints[1], gF_MarkerPoints[1], g_LaserSprite, g_HaloSprite, 0, 0, 0.2, 2.0, 2.0, 0, 0.0, {255,0,0,255}, 1);
+			TE_SendToAll();
+		}
 	}
 	
 	return Plugin_Continue;

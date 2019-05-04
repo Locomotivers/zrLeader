@@ -38,6 +38,10 @@ deploy:
     - zrLeader.tar.gz
     - zrLeader/addons/sourcemod/plugins/leader2.smx
     - zrLeader/addons/sourcemod/scripting/leader2.sp
+  skip_cleanup: true
   on:
     repo: Locomotivers/zrLeader
-    branch: master
+    branch:
+      except:
+        - dev
+    tags: true

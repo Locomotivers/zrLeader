@@ -1,4 +1,4 @@
-# Zombie Reloaded Leader Plugin [![Build Status](https://travis-ci.com/Locomotivers/zrLeader.svg?branch=master)](https://travis-ci.com/Locomotivers/zrLeader)
+# Zombie Reloaded Leader Plugin [![Build Status](https://travis-ci.com/Locomotivers/zrLeader.svg?branch=dev)](https://travis-ci.com/Locomotivers/zrLeader)
 
 The full credit goes to original author [**antiteal**](https://forums.alliedmods.net/member.php?u=263656) (and will leave sm forum post link down below). He didn't had repo to me fork it!
 
